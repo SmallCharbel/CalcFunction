@@ -1,5 +1,7 @@
 const nodemailer = require('nodemailer');
 const jwt = require('jsonwebtoken');
+const { Client } = require('@microsoft/microsoft-graph-client');
+const { ClientSecretCredential } = require('@azure/identity');
 
 // Store verification codes temporarily (in memory)
 const verificationCodes = new Map();
@@ -99,27 +101,50 @@ function generateAccessToken(email) {
 }
 
 async function sendVerificationEmail(email, name, code) {
-    const transporter = nodemailer.createTransport({
-        host: "smtp.office365.com",
-        port: 587,
-        secure: false, // true for 465, false for other ports
-        auth: {
-            user: process.env.EMAIL_USER,
-            pass: process.env.EMAIL_PASSWORD
-        },
-        tls: {
-            ciphers: 'SSLv3'
+    const credential = new ClientSecretCredential(
+        process.env.AZURE_TENANT_ID,
+        process.env.AZURE_CLIENT_ID,
+        process.env.AZURE_CLIENT_SECRET
+    );
+
+    const client = Client.init({
+        authProvider: async (done) => {
+            try {
+                const token = await credential.getToken('https://graph.microsoft.com/.default');
+                done(null, token.token);
+            } catch (error) {
+                done(error, null);
+            }
         }
     });
 
-    await transporter.sendMail({
-        from: process.env.EMAIL_USER,
-        to: email,
-        subject: 'Verify your email for Calculator Access',
-        html: `
-            <h1>Hello ${name || 'there'}!</h1>
-            <p>Your verification code is: <strong>${code}</strong></p>
-            <p>This code will expire in 10 minutes.</p>
-        `
-    });
+    const message = {
+        message: {
+            subject: 'Verify your email for Calculator Access',
+            body: {
+                contentType: 'HTML',
+                content: `
+                    <h1>Hello ${name || 'there'}!</h1>
+                    <p>Your verification code is: <strong>${code}</strong></p>
+                    <p>This code will expire in 10 minutes.</p>
+                `
+            },
+            toRecipients: [
+                {
+                    emailAddress: {
+                        address: email
+                    }
+                }
+            ]
+        },
+        saveToSentItems: true
+    };
+
+    try {
+        await client.api('/users/' + process.env.EMAIL_USER + '/sendMail')
+            .post(message);
+    } catch (error) {
+        console.error('Error sending email:', error);
+        throw error;
+    }
 } 
