@@ -1,0 +1,9 @@
+{
+    "name": "email-verification-function",
+    "version": "1.0.0",
+    "description": "Azure Function for email verification",
+    "dependencies": {
+        "nodemailer": "^6.9.1",
+        "jsonwebtoken": "^9.0.0"
+    }
+} 
