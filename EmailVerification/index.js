@@ -100,10 +100,15 @@ function generateAccessToken(email) {
 
 async function sendVerificationEmail(email, name, code) {
     const transporter = nodemailer.createTransport({
-        service: process.env.EMAIL_SERVICE,
+        host: "smtp.office365.com",
+        port: 587,
+        secure: false, // true for 465, false for other ports
         auth: {
             user: process.env.EMAIL_USER,
             pass: process.env.EMAIL_PASSWORD
+        },
+        tls: {
+            ciphers: 'SSLv3'
         }
     });
 
