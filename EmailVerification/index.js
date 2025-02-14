@@ -7,23 +7,71 @@ const { ClientSecretCredential } = require('@azure/identity');
 const verificationCodes = new Map();
 
 module.exports = async function (context, req) {
-    console.log("Function starting");  // Basic console.log
-    
     try {
-        console.log("Inside try block");
-        console.log("Request body:", req.body);
+        context.log("Function starting");
+        context.log("Checking environment variables...");
+
+        // Check critical environment variables
+        const requiredVars = [
+            'EMAIL_USER',
+            'JWT_SECRET',
+            'AZURE_CLIENT_ID',
+            'AZURE_CLIENT_SECRET'
+        ];
+
+        const missingVars = requiredVars.filter(varName => !process.env[varName]);
         
-        // Very simple response
+        if (missingVars.length > 0) {
+            context.log.error(`Missing environment variables: ${missingVars.join(', ')}`);
+            return {
+                status: 500,
+                body: {
+                    error: "Configuration error",
+                    details: `Missing required environment variables: ${missingVars.join(', ')}`
+                }
+            };
+        }
+
+        // Log request details
+        context.log("Environment variables verified");
+        context.log("Request body:", req.body);
+        
+        const { email, type, code, name } = req.body || {};
+        
+        if (!email) {
+            return {
+                status: 400,
+                body: { error: "Email is required" }
+            };
+        }
+
+        if (!type) {
+            return {
+                status: 400,
+                body: { error: "Type is required" }
+            };
+        }
+
+        // Return success for testing
         return {
             status: 200,
-            body: "OK"
+            body: {
+                message: "Configuration verified",
+                type: type,
+                email: email,
+                envVarsPresent: requiredVars
+            }
         };
-        
+
     } catch (error) {
-        console.log("Error occurred:", error);
+        context.log.error("Function error:", error);
         return {
             status: 500,
-            body: error.message
+            body: {
+                error: "Internal server error",
+                message: error.message,
+                type: error.type
+            }
         };
     }
 };
