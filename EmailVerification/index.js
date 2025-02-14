@@ -7,27 +7,40 @@ const { ClientSecretCredential } = require('@azure/identity');
 const verificationCodes = new Map();
 
 module.exports = async function (context, req) {
-    context.log('Email verification function processing request.');
+    try {
+        context.log('Email verification function processing request.');
+        
+        const { email, name, action, code } = req.body;
+        context.log('Request body:', JSON.stringify(req.body)); // Log the request body
 
-    const { email, name, action, code } = req.body;
-
-    if (!email) {
-        return {
-            status: 400,
-            body: { error: "Email is required" }
-        };
-    }
-
-    switch (action) {
-        case 'send':
-            return await handleSendVerification(context, email, name);
-        case 'verify':
-            return await handleVerifyCode(context, email, code);
-        default:
+        if (!email) {
+            context.log.error('Email is missing from request');
             return {
                 status: 400,
-                body: { error: "Invalid action" }
+                body: { error: "Email is required" }
             };
+        }
+
+        switch (action) {
+            case 'send':
+                context.log('Handling send verification request');
+                return await handleSendVerification(context, email, name);
+            case 'verify':
+                context.log('Handling verify code request');
+                return await handleVerifyCode(context, email, code);
+            default:
+                context.log.error(`Invalid action type: ${action}`);
+                return {
+                    status: 400,
+                    body: { error: "Invalid action type" }
+                };
+        }
+    } catch (error) {
+        context.log.error('Function error:', error);
+        return {
+            status: 500,
+            body: { error: error.message }
+        };
     }
 };
 
