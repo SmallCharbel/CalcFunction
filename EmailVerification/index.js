@@ -7,77 +7,30 @@ const { ClientSecretCredential } = require('@azure/identity');
 const verificationCodes = new Map();
 
 module.exports = async function (context, req) {
-    context.log('Function started');
-    
     try {
-        // Log the entire request
-        context.log('Request body:', JSON.stringify(req.body, null, 2));
-        context.log('Request headers:', JSON.stringify(req.headers, null, 2));
+        // Basic console log to see if the function executes at all
+        context.log("Function started");
 
-        // Check if req.body exists
-        if (!req.body) {
-            throw new Error('Request body is empty');
-        }
-
-        const { email, name, type } = req.body;
-        context.log(`Received request with email: ${email}, name: ${name}, type: ${type}`);
-
-        // Validate required fields
-        if (!email) {
-            context.log.error('Email is missing');
-            return {
-                status: 400,
-                body: { error: "Email is required" }
-            };
-        }
-
-        if (!type) {
-            context.log.error('Type is missing');
-            return {
-                status: 400,
-                body: { error: "Type is required" }
-            };
-        }
-
-        // Process based on type
-        switch (type) {
-            case 'login':
-                context.log('Processing login request');
-                return {
-                    status: 200,
-                    body: { message: "Login verification initiated" }
-                };
-            
-            case 'register':
-                context.log('Processing registration request');
-                return {
-                    status: 200,
-                    body: { message: "Registration verification initiated" }
-                };
-            
-            case 'verify':
-                context.log('Processing verification request');
-                return {
-                    status: 200,
-                    body: { message: "Verification successful" }
-                };
-            
-            default:
-                context.log.error(`Invalid type: ${type}`);
-                return {
-                    status: 400,
-                    body: { error: `Invalid type: ${type}` }
-                };
-        }
+        // Return a simple response
+        return {
+            status: 200,
+            body: {
+                message: "Function executed successfully",
+                receivedBody: req.body || "No body received",
+                receivedHeaders: req.headers || "No headers received"
+            }
+        };
 
     } catch (error) {
-        context.log.error('Function error:', error.message);
-        context.log.error('Stack trace:', error.stack);
+        // Log any errors
+        context.log.error("Error occurred:", error);
+        
         return {
             status: 500,
-            body: { 
-                error: "Internal server error", 
-                details: error.message 
+            body: {
+                error: "Internal server error",
+                message: error.message,
+                stack: error.stack
             }
         };
     }
