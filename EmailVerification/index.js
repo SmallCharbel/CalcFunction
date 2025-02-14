@@ -7,31 +7,23 @@ const { ClientSecretCredential } = require('@azure/identity');
 const verificationCodes = new Map();
 
 module.exports = async function (context, req) {
+    console.log("Function starting");  // Basic console.log
+    
     try {
-        // Basic console log to see if the function executes at all
-        context.log("Function started");
-
-        // Return a simple response
+        console.log("Inside try block");
+        console.log("Request body:", req.body);
+        
+        // Very simple response
         return {
             status: 200,
-            body: {
-                message: "Function executed successfully",
-                receivedBody: req.body || "No body received",
-                receivedHeaders: req.headers || "No headers received"
-            }
+            body: "OK"
         };
-
-    } catch (error) {
-        // Log any errors
-        context.log.error("Error occurred:", error);
         
+    } catch (error) {
+        console.log("Error occurred:", error);
         return {
             status: 500,
-            body: {
-                error: "Internal server error",
-                message: error.message,
-                stack: error.stack
-            }
+            body: error.message
         };
     }
 };
