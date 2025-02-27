@@ -66,6 +66,6 @@ jobs:
           app-name: 'ampiocalcuOTP'
           slot-name: 'Production'
           package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_6010F2BC9C294633A2B237E9B8B87858 }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_1CFD2C31CE854D73B26823FBC3EE2D27 }}
           sku: 'flexconsumption'
         
